@@ -1,0 +1,54 @@
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const mysql = require('mysql');
+
+const app = express();
+const port = 5001;
+
+// MySQL database connection
+const db = mysql.createPool({
+  connectionLimit: 10,
+  host: 'localhost',
+  user: 'root',
+  password: '', // Enter your MySQL password here
+  database: 'facetrack_db',
+});
+
+// Middleware
+app.use(bodyParser.json());
+app.use(cors({ origin: 'http://localhost:3000' })); // Allow requests from the frontend hosted on localhost:3000
+
+// Endpoint to fetch student's name
+app.get('/api/student/name', (req, res) => {
+  const sql = `SELECT Name FROM users_login WHERE email = ?`; // Adjust this query as per your database schema
+  const email = req.query.email; // Assuming email is sent as a query parameter
+  db.query(sql, [email], (err, result) => {
+    if (err) {
+      console.error('Error fetching student name:', err);
+      return res.status(500).send('Error fetching student name');
+    }
+    if (result.length === 0) {
+      return res.status(404).send('Student not found');
+    }
+    return res.status(200).json({ name: result[0].Name });
+  });
+});
+
+// Endpoint to fetch student's attendance data
+app.get('/api/student/attendance', (req, res) => {
+  const email = req.query.email; // Assuming email is sent as a query parameter
+  const sql = `SELECT * FROM attendance WHERE R_id = (SELECT R_id FROM users_login WHERE email = ?)`;
+  db.query(sql, [email], (err, result) => {
+    if (err) {
+      console.error('Error fetching student attendance:', err);
+      return res.status(500).send('Error fetching student attendance');
+    }
+    return res.status(200).json(result);
+  });
+});
+
+// Start server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});

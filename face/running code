@@ -1,0 +1,149 @@
+import face_recognition
+import cv2
+import numpy as np
+import csv
+import os
+from datetime import datetime
+import mysql.connector
+
+# Establish connection to MySQL database
+mydb = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="",
+    database="facetrack_db"
+)
+mycursor = mydb.cursor()
+
+video_capture = cv2.VideoCapture(0)
+
+madhav_image = face_recognition.load_image_file("C:/Users/admin/attendance-management/face/images/madhav.jpg")
+madhav_encoding = face_recognition.face_encodings(madhav_image)[0]
+
+aman_image = face_recognition.load_image_file("C:/Users/admin/attendance-management/face/images/aman.jpeg")
+aman_encoding = face_recognition.face_encodings(aman_image)[0]
+
+prab_image = face_recognition.load_image_file("C:/Users/admin/attendance-management/face/images/prab.jpeg")
+prab_encoding = face_recognition.face_encodings(prab_image)[0]
+
+akshat_image = face_recognition.load_image_file("C:/Users/admin/attendance-management/face/images/akshat.jpeg")
+akshat_encoding = face_recognition.face_encodings(akshat_image)[0]
+
+chirag_image = face_recognition.load_image_file("C:/Users/admin/attendance-management/face/images/chirag.jpeg")
+chirag_encoding = face_recognition.face_encodings(chirag_image)[0]
+
+vansh_image = face_recognition.load_image_file("C:/Users/admin/attendance-management/face/images/vansh.jpeg")
+vansh_encoding = face_recognition.face_encodings(vansh_image)[0]
+
+rahul_image = face_recognition.load_image_file("C:/Users/admin/attendance-management/face/images/rahul.jpeg")
+rahul_encoding = face_recognition.face_encodings(rahul_image)[0]
+
+avichal_image = face_recognition.load_image_file("C:/Users/admin/attendance-management/face/images/avichal.jpeg")
+avichal_encoding = face_recognition.face_encodings(avichal_image)[0]
+
+hod_image = face_recognition.load_image_file("C:/Users/admin/attendance-management/face/images/hod.jpeg")
+hod_encoding = face_recognition.face_encodings(hod_image)[0]
+
+known_face_encoding = [
+    madhav_encoding,
+    aman_encoding,
+    prab_encoding,
+    akshat_encoding,
+    chirag_encoding,
+    vansh_encoding,
+    rahul_encoding,
+    avichal_encoding,
+    hod_encoding
+]
+
+known_faces_names = [
+    "Madhav Agarwal",
+    "Aman Kumar",
+    "Prabhakar",
+    "Akshat Khandelwal",
+    "Chirag Mathur",
+    "Vansh Gupta",
+    "Rahul Jaiswal",
+    "Avichal Kachori",
+    "Dr. Sunil Gupta"
+]
+
+
+students = known_faces_names.copy()
+
+now = datetime.now()
+current_date = now.strftime("%Y-%m-%d")
+
+# Open CSV file outside the loop
+with open(current_date + '.csv', 'w+', newline='') as f:
+    lnwriter = csv.writer(f)
+
+    while True:
+        _, frame = video_capture.read()
+        small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+
+        # Ensure RGB format (channels first)
+        rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
+
+        # Detect faces
+        face_locations = face_recognition.face_locations(rgb_small_frame)
+
+        if face_locations:
+            face_landmarks_list = face_recognition.face_landmarks(rgb_small_frame, face_locations)
+            face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+            face_names = []
+
+            for face_encoding in face_encodings:
+                matches = face_recognition.compare_faces(known_face_encoding, face_encoding)
+                name = ""
+                face_distance = face_recognition.face_distance(known_face_encoding, face_encoding)
+                best_match_index = np.argmin(face_distance)
+                if matches[best_match_index]:
+                    name = known_faces_names[best_match_index]
+
+                face_names.append(name)
+
+                if name in known_faces_names:
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    bottomLeftCornerOfText = (10, 100)
+                    fontScale = 1.5
+                    fontColor = (255, 0, 0)
+                    thickness = 3
+                    lineType = 2
+
+                    cv2.putText(frame, name + ' Present',
+                                bottomLeftCornerOfText,
+                                font,
+                                fontScale,
+                                fontColor,
+                                thickness,
+                                lineType)
+
+                    if name in students:
+                        students.remove(name)
+                        print(students)
+                        current_date = datetime.now().strftime("%Y-%m-%d")  # Get current date
+                        current_time = datetime.now().strftime("%H-%M-%S")  # Get current time
+                        row_data = [name, current_date, current_time]
+                        print("Writing to CSV:", row_data)
+                        lnwriter.writerow(row_data)
+                        f.flush()
+
+                        # Insert data into MySQL database
+                        sql = "INSERT INTO attendance (R_id, Name, date, time) VALUES (%s, %s, %s, %s)"
+                        val = (known_faces_names.index(name) + 1, name, current_date, current_time)
+                        mycursor.execute(sql, val)
+                        mydb.commit()
+
+        cv2.imshow("attendance system", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # After the loop, add the SQL update query
+    update_query = "UPDATE attendance JOIN users_login ON attendance.Name = users_login.Name SET attendance.R_id = users_login.R_id"
+    mycursor.execute(update_query)
+    mydb.commit()
+
+video_capture.release()
+cv2.destroyAllWindows()
+f.close()
