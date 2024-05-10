@@ -1,18 +1,22 @@
 ## Project Snapshots
 
-
+# Home Page
 ![fc1](https://github.com/madhav-agrr/face_recognition_attendance_system/assets/124513997/739d7f94-b180-4067-bb62-b1cca635ce12)
+
+# Student Registration
 ![fc2](https://github.com/madhav-agrr/face_recognition_attendance_system/assets/124513997/833843f5-93cd-4e85-93c6-0388194598d8)
+
+# Teacher Registration
 ![fc3](https://github.com/madhav-agrr/face_recognition_attendance_system/assets/124513997/051db92b-1974-402f-9f12-8ea93612ae1d)
-[fc4](https://github.com/madhav-agrr/face_recognition_attendance_system/assets/124513997/5447c782-e3aa-4e71-b21f-a1603feb41aa)
+
+# Teacher's Attendance Dashboard
+![fc4](https://github.com/madhav-agrr/face_recognition_attendance_system/assets/124513997/5447c782-e3aa-4e71-b21f-a1603feb41aa)
+
+# Teacher Recorded Attendance through Face Recognition Model and Attendance Preview Available for Review on the Dashboard
 ![fc5](https://github.com/madhav-agrr/face_recognition_attendance_system/assets/124513997/c73fd7f0-6fa6-43d0-8f78-4da97bc6a61e)
+
+# Database Snapshot of the recorded Attendance
 ![fc6](https://github.com/madhav-agrr/face_recognition_attendance_system/assets/124513997/7f7efdeb-8496-4bfb-9ac9-ac0eccb871ad)
-
-/madhav-agrr/face_recognition_attendance_system/assets/124513997/7dd16076-e6a6-4040-b4e7-ad960120135f)
-
-
-
-
 
 
 
